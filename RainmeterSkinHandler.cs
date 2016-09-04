@@ -54,14 +54,15 @@ namespace RainManager
 
         #region Fast SkinPtr->SkinHandler Reference.
         private static Dictionary<IntPtr, RainmeterSkinHandler> SkinHandlerBySkinPtr = new Dictionary<IntPtr, RainmeterSkinHandler>();
-        public static List<RainmeterSkinHandler> SkinHandlers => new List<RainmeterSkinHandler>(SkinHandlerBySkinPtr.Values);
         internal static RainmeterSkinHandler GetSkinHandler(RainmeterAPI api)
         {
             IntPtr skinPtr = api.GetSkin();
 
             RainmeterSkinHandler skinHandler;
             if (!SkinHandlerBySkinPtr.TryGetValue(skinPtr, out skinHandler))
+            {
                 SkinHandlerBySkinPtr.Add(skinPtr, (skinHandler = new RainmeterSkinHandler(skinPtr, api.GetSkinName(), api.GetSkinWindow())));
+            }
             return skinHandler;
         }
         #endregion Fast SkinPtr->SkinHandler Reference.
@@ -94,8 +95,16 @@ namespace RainManager
         #region Creating Instances of Implemented Classes by Known Scheme.
         private static Assembly GetAssembly(string assemblyPath)
         {
-            if (File.Exists(assemblyPath))
-                return Assembly.LoadFrom(assemblyPath);
+            string platform = string.Empty;
+#if X64
+            platform = "x64";
+#else
+            platform = "x86";
+#endif
+
+            var path = $"{assemblyPath}_{ platform}.dll";
+            if (File.Exists(path))
+                return Assembly.LoadFrom(path);
 
             return null;
         }
